@@ -1,0 +1,30 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/readmere-backend
+
+            git pull origin main
+
+            npm ci
+
+            npm run build
+
+            pm2 reload readmere || pm2 start ecosystem.config.js --only readmere
+
+            pm2 save
